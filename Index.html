@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Betting Value Calculator</title>
+  </head>
+  <body>
+    <h1>Betting Value Strategy</h1>
+    <label>Probability (%): <input id="prob" type="number" /></label><br />
+    <label>Odds: <input id="odds" type="number" step="0.01" /></label><br />
+    <button onclick="calcValue()">Check Value</button>
+    <p id="result"></p>
+
+    <script>
+      function calcValue() {
+        const prob = parseFloat(document.getElementById("prob").value);
+        const odds = parseFloat(document.getElementById("odds").value);
+        const value = (prob / 100) * odds;
+        document.getElementById("result").textContent =
+          value > 1
+            ? `✅ Value Bet! (Expected Value: ${value.toFixed(2)})`
+            : `❌ No Value (Expected Value: ${value.toFixed(2)})`;
+      }
+    </script>
+  </body>
+</html>
