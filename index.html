@@ -1,16 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
-  <link rel="manifest" href="/manifest.json" />
-<meta name="theme-color" content="#0d6efd" />
+  <head>
     <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Betting Value Calculator</title>
+
+    <!-- PWA Meta -->
+    <meta name="theme-color" content="#0d6efd" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+
+    <!-- Register Service Worker -->
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("/service-worker.js")
+            .then((reg) => console.log("SW registered", reg))
+            .catch((err) => console.error("SW registration failed", err));
+        });
+      }
+    </script>
   </head>
+
   <body>
     <h1>Betting Value Strategy</h1>
     <label>Probability (%): <input id="prob" type="number" /></label><br />
     <label>Odds: <input id="odds" type="number" step="0.01" /></label><br />
     <button onclick="calcValue()">Check Value</button>
     <p id="result"></p>
+
+    <h2>Live Odds</h2>
+    <button onclick="getOdds()">Fetch Live Odds</button>
+    <pre id="oddsDisplay">Click to load live odds...</pre>
 
     <script>
       function calcValue() {
@@ -21,6 +43,17 @@
           value > 1
             ? `✅ Value Bet! (Expected Value: ${value.toFixed(2)})`
             : `❌ No Value (Expected Value: ${value.toFixed(2)})`;
+      }
+
+      async function getOdds() {
+        const url = "https://api.the-odds-api.com/v4/sports/soccer_epl/odds/?regions=eu&markets=h2h&apiKey=6a2867eb1227c801fb9f87125811b143";
+        try {
+          const res = await fetch(url);
+          const data = await res.json();
+          document.getElementById("oddsDisplay").textContent = JSON.stringify(data.slice(0, 3), null, 2); // display first 3 entries
+        } catch (error) {
+          document.getElementById("oddsDisplay").textContent = "Error fetching live odds.";
+        }
       }
     </script>
   </body>
