@@ -1,60 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Betting Value Calculator</title>
+<head>
+  <meta charset="UTF-8" />
+  <title>Betting Value Calculator</title>
+  <meta name="theme-color" content="#0d6efd" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="/manifest.json" />
+</head>
+<body>
+  <h1>Betting Value Strategy</h1>
+  <label>Probability (%): <input id="prob" type="number" /></label><br />
+  <label>Odds: <input id="odds" type="number" step="0.01" /></label><br />
+  <button onclick="calcValue()">Check Value</button>
+  <p id="result"></p>
 
-    <!-- PWA Meta -->
-    <meta name="theme-color" content="#0d6efd" />
-    <link rel="manifest" href="/manifest.json" />
-    <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+  <script>
+    function calcValue() {
+      const prob = parseFloat(document.getElementById("prob").value);
+      const odds = parseFloat(document.getElementById("odds").value);
+      const value = (prob / 100) * odds;
+      document.getElementById("result").textContent =
+        value > 1
+          ? `✅ Value Bet! (Expected Value: ${value.toFixed(2)})`
+          : `❌ No Value (Expected Value: ${value.toFixed(2)})`;
+    }
+  </script>
 
-    <!-- Register Service Worker -->
-    <script>
-      if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-          navigator.serviceWorker
-            .register("/service-worker.js")
-            .then((reg) => console.log("SW registered", reg))
-            .catch((err) => console.error("SW registration failed", err));
-        });
-      }
-    </script>
-  </head>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(() => console.log('✅ Service Worker registered'))
+        .catch(err => console.error('❌ Service Worker registration failed', err));
+    }
 
-  <body>
-    <h1>Betting Value Strategy</h1>
-    <label>Probability (%): <input id="prob" type="number" /></label><br />
-    <label>Odds: <input id="odds" type="number" step="0.01" /></label><br />
-    <button onclick="calcValue()">Check Value</button>
-    <p id="result"></p>
+    async function getLiveOdds() {
+      const res = await fetch(
+        'https://api.the-odds-api.com/v4/sports/soccer_epl/odds?regions=eu&markets=h2h&apiKey=6a2867eb1227c801fb9f87125811b143'
+      );
 
-    <h2>Live Odds</h2>
-    <button onclick="getOdds()">Fetch Live Odds</button>
-    <pre id="oddsDisplay">Click to load live odds...</pre>
-
-    <script>
-      function calcValue() {
-        const prob = parseFloat(document.getElementById("prob").value);
-        const odds = parseFloat(document.getElementById("odds").value);
-        const value = (prob / 100) * odds;
-        document.getElementById("result").textContent =
-          value > 1
-            ? `✅ Value Bet! (Expected Value: ${value.toFixed(2)})`
-            : `❌ No Value (Expected Value: ${value.toFixed(2)})`;
+      if (!res.ok) {
+        document.getElementById("result").textContent = "❌ Error fetching odds";
+        return;
       }
 
-      async function getOdds() {
-        const url = "https://api.the-odds-api.com/v4/sports/soccer_epl/odds/?regions=eu&markets=h2h&apiKey=6a2867eb1227c801fb9f87125811b143";
-        try {
-          const res = await fetch(url);
-          const data = await res.json();
-          document.getElementById("oddsDisplay").textContent = JSON.stringify(data.slice(0, 3), null, 2); // display first 3 entries
-        } catch (error) {
-          document.getElementById("oddsDisplay").textContent = "Error fetching live odds.";
-        }
-      }
-    </script>
-  </body>
+      const data = await res.json();
+      const first = data[0];
+      const teams = first.teams.join(" vs ");
+      const odds = first.bookmakers[0].markets[0].outcomes;
+
+      let txt = `${teams}\n`;
+      odds.forEach(o => txt += `${o.name}: ${o.price}\n`);
+      document.getElementById("result").textContent = txt;
+    }
+
+    getLiveOdds();
+  </script>
+</body>
 </html>
