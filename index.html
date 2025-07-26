@@ -2,37 +2,16 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="theme-color" content="#0d6efd" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Betting Value Calculator</title>
-    <link rel="manifest" href="/manifest.json" />
-    <style>
-      body {
-        font-family: Arial, sans-serif;
-        padding: 1rem;
-        background-color: #f9f9f9;
-      }
-      input, button {
-        padding: 8px;
-        margin: 4px 0;
-      }
-      #odds-list {
-        margin-top: 20px;
-      }
-    </style>
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#0d6efd" />
   </head>
   <body>
     <h1>Betting Value Strategy</h1>
-
     <label>Probability (%): <input id="prob" type="number" /></label><br />
     <label>Odds: <input id="odds" type="number" step="0.01" /></label><br />
     <button onclick="calcValue()">Check Value</button>
     <p id="result"></p>
-
-    <hr />
-
-    <button onclick="fetchOdds()">Fetch Live EPL Odds</button>
-    <div id="odds-list"></div>
 
     <script>
       function calcValue() {
@@ -45,43 +24,10 @@
             : `❌ No Value (Expected Value: ${value.toFixed(2)})`;
       }
 
-      async function fetchOdds() {
-        const apiKey = '6a2867eb1227c801fb9f87125811b143';
-        const url =
-          'https://api.the-odds-api.com/v4/sports/soccer_epl/odds?regions=eu&markets=h2h&apiKey=' +
-          apiKey;
-
-        try {
-          const res = await fetch(url);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const data = await res.json();
-
-          const oddsList = document.getElementById('odds-list');
-          oddsList.innerHTML = '<h3>Live EPL Odds (H2H)</h3>';
-
-          data.forEach(match => {
-            const bookmaker = match.bookmakers[0];
-            const markets = bookmaker.markets[0].outcomes;
-            oddsList.innerHTML += `
-              <div style="margin-bottom: 10px;">
-                <strong>${match.teams[0]} vs ${match.teams[1]}</strong><br/>
-                ${markets.map(o => `${o.name}: ${o.price}`).join(' | ')}
-              </div>`;
-          });
-        } catch (err) {
-          document.getElementById('odds-list').innerHTML =
-            'Error fetching odds: ' + err.message;
-        }
-      }
-
-      // Register service worker
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker
-            .register('/sw.js')
-            .then(reg => console.log('Service worker registered:', reg))
-            .catch(err => console.error('SW registration failed:', err));
-        });
+        navigator.serviceWorker.register('service-worker.js')
+          .then(() => console.log("✅ Service Worker Registered"))
+          .catch(err => console.error("❌ Service Worker Failed", err));
       }
     </script>
   </body>
